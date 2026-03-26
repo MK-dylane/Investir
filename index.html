@@ -98,7 +98,7 @@
         <button class="action-btn" onclick="openReferralModal()"><i class="fas fa-link"></i> Parrainage</button>
     </div>
 
-    <!-- SECTION MACHINES - UNIQUEMENT DANS LE DASHBOARD -->
+    <!-- SECTION MACHINES -->
     <div class="machines-section">
         <h3 style="margin-bottom: 1rem;"><i class="fas fa-store"></i> 🏪 Boutique de machines</h3>
         <p style="color: var(--gray); margin-bottom: 1rem;">Achetez des machines et générez des revenus quotidiens fixes</p>
@@ -122,18 +122,148 @@
     </div>
 </div>
 
-<!-- Panel Admin -->
+<!-- Panel Admin - Version Améliorée -->
 <div id="adminPanel" class="admin-container">
-    <div class="welcome-card"><h2>👑 Panel Administrateur</h2><p>Gestion complète des dépôts, retraits et utilisateurs</p></div>
-    <div class="stats-grid">
-        <div class="stat-card"><h4>📥 Dépôts en attente</h4><div class="value" id="pendingDeposits">0</div></div>
-        <div class="stat-card"><h4>📤 Retraits en attente</h4><div class="value" id="pendingWithdrawals">0</div></div>
-        <div class="stat-card"><h4>👥 Total utilisateurs</h4><div class="value" id="totalUsers">0</div></div>
-        <div class="stat-card"><h4>💰 Volume total</h4><div class="value" id="totalVolume">0 FCFA</div></div>
+    <div class="welcome-card">
+        <h2><i class="fas fa-crown"></i> Panel Administrateur</h2>
+        <p>Gestion complète des dépôts, retraits, utilisateurs et statistiques</p>
     </div>
-    <div class="transactions-table"><h3>📥 Dépôts en attente</h3><table><thead><tr><th>Utilisateur</th><th>Montant</th><th>Référence</th><th>Actions</th></tr></thead><tbody id="pendingDepositsList"></tbody></table></div>
-    <div class="transactions-table"><h3>📤 Retraits en attente</h3><table><thead><tr><th>Utilisateur</th><th>Montant</th><th>Téléphone</th><th>Actions</th></tr></thead><tbody id="pendingWithdrawalsList"></tbody></table></div>
-    <div class="transactions-table"><h3>👥 Utilisateurs</h3><table><thead><tr><th>Nom</th><th>Téléphone</th><th>Solde</th><th>Machines</th><th>Actions</th></tr></thead><tbody id="usersList"></tbody></table></div>
+
+    <!-- Statistiques Globales -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4><i class="fas fa-users"></i> Total Utilisateurs</h4>
+            <div class="value" id="totalUsers">0</div>
+        </div>
+        <div class="stat-card">
+            <h4><i class="fas fa-microchip"></i> Machines Vendues</h4>
+            <div class="value" id="totalMachinesSold">0</div>
+        </div>
+        <div class="stat-card">
+            <h4><i class="fas fa-chart-line"></i> Volume Total (FCFA)</h4>
+            <div class="value" id="totalVolume">0 FCFA</div>
+        </div>
+        <div class="stat-card">
+            <h4><i class="fas fa-clock"></i> En Attente</h4>
+            <div class="value" id="totalPending">0</div>
+        </div>
+    </div>
+
+    <!-- Détails des dépôts et retraits en attente -->
+    <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="stat-card">
+            <h4><i class="fas fa-download"></i> Dépôts en attente</h4>
+            <div class="value" id="pendingDepositsCount">0</div>
+            <p id="pendingDepositsTotal" style="font-size: 0.9rem; color: var(--gray);"></p>
+        </div>
+        <div class="stat-card">
+            <h4><i class="fas fa-upload"></i> Retraits en attente</h4>
+            <div class="value" id="pendingWithdrawalsCount">0</div>
+            <p id="pendingWithdrawalsTotal" style="font-size: 0.9rem; color: var(--gray);"></p>
+        </div>
+    </div>
+
+    <!-- Dépôts en attente - Tableau détaillé -->
+    <div class="transactions-table">
+        <h3><i class="fas fa-download"></i> 📥 Dépôts en attente de validation</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Utilisateur</th>
+                        <th>Téléphone</th>
+                        <th>Montant</th>
+                        <th>Référence Transaction</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingDepositsList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Retraits en attente - Tableau détaillé -->
+    <div class="transactions-table">
+        <h3><i class="fas fa-upload"></i> 📤 Retraits en attente de validation</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Utilisateur</th>
+                        <th>Téléphone</th>
+                        <th>Montant</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingWithdrawalsList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Historique complet des transactions -->
+    <div class="transactions-table">
+        <h3><i class="fas fa-history"></i> 📜 Historique complet des transactions</h3>
+        <div style="overflow-x: auto; max-height: 400px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Utilisateur</th>
+                        <th>Type</th>
+                        <th>Montant</th>
+                        <th>Référence</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="allTransactionsList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Liste des utilisateurs avec leurs machines -->
+    <div class="transactions-table">
+        <h3><i class="fas fa-users"></i> 👥 Liste des utilisateurs</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Téléphone</th>
+                        <th>Solde</th>
+                        <th>Machines</th>
+                        <th>Gains quotidiens</th>
+                        <th>Date inscription</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Statistiques des machines -->
+    <div class="transactions-table">
+        <h3><i class="fas fa-chart-bar"></i> 📊 Statistiques des machines</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Machine</th>
+                        <th>Prix</th>
+                        <th>Gain journalier</th>
+                        <th>Nombre vendues</th>
+                        <th>Chiffre d'affaires</th>
+                    </tr>
+                </thead>
+                <tbody id="machineStatsList"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Modals -->
