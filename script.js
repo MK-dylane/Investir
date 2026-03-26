@@ -16,6 +16,7 @@ const MACHINES_SHOP = [
     { id: 4, name: "Machine Diamant", price: 1000000, dailyEarning: 70000, icon: "fa-microchip", color: "#b9f2ff", description: "Machine ultime", roi: "7%" }
 ];
 
+// Fonctions de vérification
 function checkWithdrawalAvailability() {
     const now = new Date();
     const day = now.getDay();
@@ -157,6 +158,7 @@ function submitDeposit() {
     let phone = document.getElementById('depositPhone').value;
     if (amount >= 5000 && transactionId && phone.length >= 9) {
         transactions.push({
+            id: transactions.length + 1,
             userId: currentUser.id,
             date: new Date().toISOString(),
             type: 'dépôt',
@@ -197,6 +199,7 @@ function submitWithdraw() {
     }
     if (phone.length >= 9) {
         transactions.push({
+            id: transactions.length + 1,
             userId: currentUser.id,
             date: new Date().toISOString(),
             type: 'retrait',
@@ -222,12 +225,16 @@ function approveTransaction(transactionRef, type) {
         transaction.status = 'completed';
         if (type === 'deposit') {
             let user = users.find(u => u.id === transaction.userId);
-            if (user && !user.isAdmin) user.balance = (user.balance || 0) + transaction.amount;
-            showNotification(`✅ Dépôt de ${transaction.amount.toLocaleString()} FCFA approuvé !`);
+            if (user && !user.isAdmin) {
+                user.balance = (user.balance || 0) + transaction.amount;
+                showNotification(`✅ Dépôt de ${transaction.amount.toLocaleString()} FCFA approuvé pour ${user.username}!`);
+            }
         } else if (type === 'withdraw') {
             let user = users.find(u => u.id === transaction.userId);
-            if (user && !user.isAdmin) user.balance = (user.balance || 0) - transaction.amount;
-            showNotification(`✅ Retrait de ${transaction.amount.toLocaleString()} FCFA approuvé !`);
+            if (user && !user.isAdmin) {
+                user.balance = (user.balance || 0) - transaction.amount;
+                showNotification(`✅ Retrait de ${transaction.amount.toLocaleString()} FCFA approuvé pour ${user.username}!`);
+            }
         }
         saveData();
         showAdminPanel();
@@ -246,55 +253,161 @@ function rejectTransaction(transactionRef) {
 
 function deleteUser(userId) {
     Swal.fire({
-        title: 'Confirmation',
-        text: 'Supprimer cet utilisateur ?',
+        title: '⚠️ Confirmation',
+        text: 'Êtes-vous sûr de vouloir supprimer cet utilisateur ? Toutes ses données seront perdues.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler'
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#dc2626'
     }).then((result) => {
         if (result.isConfirmed) {
             users = users.filter(u => u.id !== userId);
             transactions = transactions.filter(t => t.userId !== userId);
             machines = machines.filter(m => m.userId !== userId);
             saveData();
-            showNotification('Utilisateur supprimé avec succès');
+            showNotification('✅ Utilisateur supprimé avec succès');
             showAdminPanel();
         }
     });
 }
 
 function showAdminPanel() {
-    if (!currentUser?.isAdmin) { showNotification("Accès réservé à l'administrateur", 'error'); return; }
+    if (!currentUser?.isAdmin) { 
+        showNotification("Accès réservé à l'administrateur", 'error'); 
+        return; 
+    }
+    
     document.getElementById('landingPage').style.display = 'none';
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('adminPanel').style.display = 'block';
     document.getElementById('dashboardLink').style.display = 'none';
     document.getElementById('adminLink').style.display = 'inline-block';
+    document.getElementById('authLink').innerHTML = '<i class="fas fa-sign-out-alt"></i> Déconnexion';
     
-    let pendingDeposits = transactions.filter(t => t.type === 'dépôt' && t.status === 'pending');
-    let pendingWithdrawals = transactions.filter(t => t.type === 'retrait' && t.status === 'pending');
-    let totalVolume = transactions.filter(t => t.status === 'completed').reduce((sum, t) => sum + t.amount, 0);
+    // Statistiques globales
+    const regularUsers = users.filter(u => !u.isAdmin);
+    const totalMachinesSold = machines.filter(m => m.status === 'active').length;
+    const totalVolume = transactions.filter(t => t.status === 'completed').reduce((sum, t) => sum + t.amount, 0);
+    const pendingTransactions = transactions.filter(t => t.status === 'pending').length;
     
-    document.getElementById('pendingDeposits').innerText = pendingDeposits.length;
-    document.getElementById('pendingWithdrawals').innerText = pendingWithdrawals.length;
-    document.getElementById('totalUsers').innerText = users.filter(u => !u.isAdmin).length;
-    document.getElementById('totalVolume').innerText = totalVolume.toLocaleString() + ' FCFA';
+    document.getElementById('totalUsers').innerHTML = regularUsers.length;
+    document.getElementById('totalMachinesSold').innerHTML = totalMachinesSold;
+    document.getElementById('totalVolume').innerHTML = totalVolume.toLocaleString() + ' FCFA';
+    document.getElementById('totalPending').innerHTML = pendingTransactions;
     
-    document.getElementById('pendingDepositsList').innerHTML = pendingDeposits.map(t => {
+    // Dépôts et retraits en attente
+    const pendingDeposits = transactions.filter(t => t.type === 'dépôt' && t.status === 'pending');
+    const pendingWithdrawals = transactions.filter(t => t.type === 'retrait' && t.status === 'pending');
+    const pendingDepositsTotal = pendingDeposits.reduce((sum, t) => sum + t.amount, 0);
+    const pendingWithdrawalsTotal = pendingWithdrawals.reduce((sum, t) => sum + t.amount, 0);
+    
+    document.getElementById('pendingDepositsCount').innerHTML = pendingDeposits.length;
+    document.getElementById('pendingWithdrawalsCount').innerHTML = pendingWithdrawals.length;
+    document.getElementById('pendingDepositsTotal').innerHTML = `Total: ${pendingDepositsTotal.toLocaleString()} FCFA`;
+    document.getElementById('pendingWithdrawalsTotal').innerHTML = `Total: ${pendingWithdrawalsTotal.toLocaleString()} FCFA`;
+    
+    // Tableau des dépôts en attente
+    document.getElementById('pendingDepositsList').innerHTML = pendingDeposits.map((t, index) => {
         let user = users.find(u => u.id === t.userId);
-        return `<tr><td><strong>${user?.username || 'Inconnu'}</strong><br><small>${user?.phone || ''}</small></td><td>${t.amount.toLocaleString()} FCFA</td><td>${t.transactionId}</td><td><button class="btn-submit" style="background:var(--success); padding:0.5rem;" onclick="approveTransaction('${t.reference}','deposit')">✅</button> <button class="btn-submit" style="background:var(--danger); padding:0.5rem;" onclick="rejectTransaction('${t.reference}')">❌</button></td></tr>`;
-    }).join('');
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td><strong>${user?.username || 'Inconnu'}</strong></td>
+                <td>${user?.phone || t.phone || '-'}</td>
+                <td style="color: var(--success); font-weight: bold;">${t.amount.toLocaleString()} FCFA</td>
+                <td><code>${t.transactionId || '-'}</code></td>
+                <td>${new Date(t.date).toLocaleString()}</td>
+                <td>
+                    <button class="btn-submit" style="background: var(--success); padding: 0.5rem 1rem; margin-right: 0.5rem;" onclick="approveTransaction('${t.reference}','deposit')">
+                        <i class="fas fa-check"></i> Approuver
+                    </button>
+                    <button class="btn-submit" style="background: var(--danger); padding: 0.5rem 1rem;" onclick="rejectTransaction('${t.reference}')">
+                        <i class="fas fa-times"></i> Rejeter
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('') || '<tr><td colspan="7" style="text-align: center;">✅ Aucun dépôt en attente</td></tr>';
     
-    document.getElementById('pendingWithdrawalsList').innerHTML = pendingWithdrawals.map(t => {
+    // Tableau des retraits en attente
+    document.getElementById('pendingWithdrawalsList').innerHTML = pendingWithdrawals.map((t, index) => {
         let user = users.find(u => u.id === t.userId);
-        return `<tr><td><strong>${user?.username || 'Inconnu'}</strong><br><small>${user?.phone || ''}</small></td><td>${t.amount.toLocaleString()} FCFA</td><td>${t.phone}</td><td><button class="btn-submit" style="background:var(--success); padding:0.5rem;" onclick="approveTransaction('${t.reference}','withdraw')">✅</button> <button class="btn-submit" style="background:var(--danger); padding:0.5rem;" onclick="rejectTransaction('${t.reference}')">❌</button></td></tr>`;
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td><strong>${user?.username || 'Inconnu'}</strong></td>
+                <td>${t.phone || '-'}</td>
+                <td style="color: var(--warning); font-weight: bold;">${t.amount.toLocaleString()} FCFA</td>
+                <td>${new Date(t.date).toLocaleString()}</td>
+                <td>
+                    <button class="btn-submit" style="background: var(--success); padding: 0.5rem 1rem; margin-right: 0.5rem;" onclick="approveTransaction('${t.reference}','withdraw')">
+                        <i class="fas fa-check"></i> Approuver
+                    </button>
+                    <button class="btn-submit" style="background: var(--danger); padding: 0.5rem 1rem;" onclick="rejectTransaction('${t.reference}')">
+                        <i class="fas fa-times"></i> Rejeter
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('') || '<tr><td colspan="6" style="text-align: center;">✅ Aucun retrait en attente</td></tr>';
+    
+    // Historique complet des transactions
+    const allTransactions = [...transactions].reverse();
+    document.getElementById('allTransactionsList').innerHTML = allTransactions.map(t => {
+        let user = users.find(u => u.id === t.userId);
+        let statusClass = t.status === 'completed' ? 'status-completed' : (t.status === 'pending' ? 'status-pending' : 'status-rejected');
+        let statusText = t.status === 'completed' ? '✅ Validé' : (t.status === 'pending' ? '⏳ En attente' : '❌ Rejeté');
+        return `
+            <tr>
+                <td>${new Date(t.date).toLocaleString()}</td>
+                <td><strong>${user?.username || 'Inconnu'}</strong></td>
+                <td>${t.type === 'dépôt' ? '📥 Dépôt' : t.type === 'retrait' ? '📤 Retrait' : '🖥️ ' + t.type}</td>
+                <td>${t.amount.toLocaleString()} FCFA</td>
+                <td><code>${t.reference || '-'}</code></td>
+                <td class="${statusClass}">${statusText}</td>
+            </tr>
+        `;
+    }).join('') || '<tr><td colspan="6" style="text-align: center;">Aucune transaction</td></tr>';
+    
+    // Liste des utilisateurs
+    document.getElementById('usersList').innerHTML = regularUsers.map(u => {
+        let userMachines = machines.filter(m => m.userId === u.id && m.status === 'active');
+        let userDailyEarnings = userMachines.reduce((sum, m) => sum + m.dailyEarning, 0);
+        return `
+            <tr>
+                <td>${u.id}</td>
+                <td><strong>${u.username}</strong></td>
+                <td>${u.phone}</td>
+                <td style="color: var(--success); font-weight: bold;">${(u.balance || 0).toLocaleString()} FCFA</td>
+                <td>${userMachines.length}</td>
+                <td>${userDailyEarnings.toLocaleString()} FCFA/jour</td>
+                <td>${new Date(u.createdAt || Date.now()).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn-submit" style="background: var(--danger); padding: 0.5rem 1rem;" onclick="deleteUser(${u.id})">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('') || '<tr><td colspan="8" style="text-align: center;">Aucun utilisateur</td></tr>';
+    
+    // Statistiques des machines
+    const machineStats = MACHINES_SHOP.map(machine => {
+        const soldCount = machines.filter(m => m.machineId === machine.id && m.status === 'active').length;
+        const revenue = soldCount * machine.price;
+        return `
+            <tr>
+                <td><i class="fas fa-microchip" style="color: ${machine.color}"></i> <strong>${machine.name}</strong></td>
+                <td>${machine.price.toLocaleString()} FCFA</td>
+                <td>${machine.dailyEarning.toLocaleString()} FCFA</td>
+                <td style="font-weight: bold;">${soldCount}</td>
+                <td>${revenue.toLocaleString()} FCFA</td>
+            </tr>
+        `;
     }).join('');
     
-    document.getElementById('usersList').innerHTML = users.filter(u => !u.isAdmin).map(u => {
-        let userMachines = machines.filter(m => m.userId === u.id);
-        return `<tr><td><strong>${u.username}</strong></td><td>${u.phone}</td><td>${(u.balance || 0).toLocaleString()} FCFA</td><td>${userMachines.length}</td><td><button class="btn-submit" style="background:var(--danger); padding:0.5rem;" onclick="deleteUser(${u.id})">🗑️</button></td></tr>`;
-    }).join('');
+    document.getElementById('machineStatsList').innerHTML = machineStats;
 }
 
 function showDashboard() {
@@ -359,21 +472,60 @@ function handleAuth() {
     if (isLoginMode) {
         if (username === "admin" && btoa(password) === ADMIN_PASSWORD_HASH) {
             let existingAdmin = users.find(u => u.isAdmin === true);
-            currentUser = existingAdmin || { id: Date.now(), username: "admin", phone: phone, passwordHash: btoa(password), isAdmin: true, balance: 0 };
-            if (!existingAdmin) users.push(currentUser);
-            saveData(); closeModals(); showAdminPanel(); showNotification('👑 Bienvenue Administrateur !');
+            if (existingAdmin) {
+                currentUser = existingAdmin;
+            } else {
+                currentUser = { 
+                    id: Date.now(), 
+                    username: "admin", 
+                    phone: phone, 
+                    passwordHash: btoa(password), 
+                    isAdmin: true, 
+                    balance: 0,
+                    createdAt: new Date().toISOString()
+                };
+                users.push(currentUser);
+            }
+            saveData(); 
+            closeModals(); 
+            showAdminPanel(); 
+            showNotification('👑 Bienvenue Administrateur !');
             return;
         }
         let user = users.find(u => u.username === username && u.phone === phone && !u.isAdmin);
-        if (user && btoa(password) === user.passwordHash) { currentUser = user; saveData(); closeModals(); showDashboard(); showNotification(`✅ Bienvenue ${user.username} !`); }
-        else { showNotification('❌ Identifiants incorrects !', 'error'); }
+        if (user && btoa(password) === user.passwordHash) { 
+            currentUser = user; 
+            saveData(); 
+            closeModals(); 
+            showDashboard(); 
+            showNotification(`✅ Bienvenue ${user.username} !`); 
+        } else { 
+            showNotification('❌ Identifiants incorrects !', 'error'); 
+        }
     } else {
         let confirmPwd = document.getElementById('confirmPassword').value;
-        if (password !== confirmPwd) { showNotification('❌ Les mots de passe ne correspondent pas !', 'error'); return; }
-        if (users.find(u => u.username === username || u.phone === phone)) { showNotification('❌ Nom ou téléphone déjà utilisé !', 'error'); return; }
-        currentUser = { id: Date.now(), username: username, phone: phone, passwordHash: btoa(password), balance: 0, isAdmin: false };
+        if (password !== confirmPwd) { 
+            showNotification('❌ Les mots de passe ne correspondent pas !', 'error'); 
+            return; 
+        }
+        if (users.find(u => u.username === username || u.phone === phone)) { 
+            showNotification('❌ Nom ou téléphone déjà utilisé !', 'error'); 
+            return; 
+        }
+        currentUser = { 
+            id: Date.now(), 
+            username: username, 
+            phone: phone, 
+            passwordHash: btoa(password), 
+            balance: 0, 
+            isAdmin: false,
+            createdAt: new Date().toISOString()
+        };
         users.push(currentUser);
-        saveData(); closeModals(); showDashboard(); showNotification('✅ Inscription réussie ! Bienvenue sur Invest-Cameroun');
+        saveData(); 
+        closeModals(); 
+        showDashboard(); 
+        showNotification('✅ Inscription réussie ! Bienvenue sur Invest-Cameroun');
     }
 }
 
@@ -391,8 +543,19 @@ function toggleAuthMode() {
 }
 
 function toggleAuth() {
-    if (currentUser) { currentUser = null; showLanding(); showNotification('🔓 Déconnecté avec succès'); }
-    else { isLoginMode = true; document.getElementById('signupFields').style.display = 'none'; document.getElementById('loginModal').style.display = 'flex'; document.getElementById('loginUsername').value = ''; document.getElementById('loginPhone').value = ''; document.getElementById('loginPassword').value = ''; document.getElementById('confirmPassword').value = ''; }
+    if (currentUser) { 
+        currentUser = null; 
+        showLanding(); 
+        showNotification('🔓 Déconnecté avec succès'); 
+    } else { 
+        isLoginMode = true; 
+        document.getElementById('signupFields').style.display = 'none'; 
+        document.getElementById('loginModal').style.display = 'flex'; 
+        document.getElementById('loginUsername').value = ''; 
+        document.getElementById('loginPhone').value = ''; 
+        document.getElementById('loginPassword').value = ''; 
+        document.getElementById('confirmPassword').value = ''; 
+    }
 }
 
 function openDepositModal() { if (!currentUser || currentUser.isAdmin) toggleAuth(); else document.getElementById('depositModal').style.display = 'flex'; }
@@ -403,7 +566,12 @@ function closeModals() { document.querySelectorAll('.modal').forEach(m => m.styl
 function showLanding() { document.getElementById('landingPage').style.display = 'block'; document.getElementById('dashboard').style.display = 'none'; document.getElementById('adminPanel').style.display = 'none'; document.getElementById('dashboardLink').style.display = 'none'; document.getElementById('adminLink').style.display = 'none'; document.getElementById('authLink').innerHTML = 'Connexion'; document.getElementById('authLink').className = 'btn-login'; if (countdownInterval) clearInterval(countdownInterval); }
 function scrollToFeatures() { document.getElementById('featuresSection').scrollIntoView({ behavior: 'smooth' }); }
 function showNotification(message, type = 'success') { const notif = document.createElement('div'); notif.className = `notification ${type}`; notif.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`; document.body.appendChild(notif); setTimeout(() => notif.remove(), 3000); }
-function saveData() { localStorage.setItem('investUsers', JSON.stringify(users)); localStorage.setItem('investTransactions', JSON.stringify(transactions)); localStorage.setItem('userMachines', JSON.stringify(machines)); if (currentUser && !currentUser.isAdmin && document.getElementById('dashboard').style.display === 'block') loadDashboard(); }
+function saveData() { 
+    localStorage.setItem('investUsers', JSON.stringify(users)); 
+    localStorage.setItem('investTransactions', JSON.stringify(transactions)); 
+    localStorage.setItem('userMachines', JSON.stringify(machines)); 
+    if (currentUser && !currentUser.isAdmin && document.getElementById('dashboard').style.display === 'block') loadDashboard(); 
+}
 
 window.addEventListener('scroll', () => { const navbar = document.getElementById('navbar'); if (window.scrollY > 50) navbar.classList.add('scrolled'); else navbar.classList.remove('scrolled'); });
 document.getElementById('toggleAuthMode').addEventListener('click', toggleAuthMode);
