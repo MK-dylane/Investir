@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Invest-Cameroun | Plateforme d'Investissement Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <div class="logo" onclick="showLanding()">
+            <i class="fas fa-chart-line"></i>
+            <span>Invest-Cameroun</span>
+        </div>
+        <div class="nav-links">
+            <a onclick="showLanding()">Accueil</a>
+            <a onclick="scrollToFeatures()">Avantages</a>
+            <a id="dashboardLink" style="display:none;" onclick="showDashboard()">Tableau de bord</a>
+            <a id="adminLink" style="display:none;" onclick="showAdminPanel()">Admin</a>
+            <a id="authLink" class="btn-login" onclick="toggleAuth()">Connexion</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Landing Page -->
+<div id="landingPage">
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Investissez dans des machines rentables</h1>
+                <p>Achetez des machines de minage et générez des revenus passifs jusqu'à 70 000 FCFA par jour ! Retraits du lundi au vendredi de 08h00 à 18h00.</p>
+                <div class="money-badges">
+                    <div class="badge"><i class="fas fa-phone-alt"></i> Orange Money</div>
+                    <div class="badge"><i class="fas fa-mobile-alt"></i> MTN MoMo</div>
+                    <div class="badge"><i class="fas fa-clock"></i> Retraits 08h-18h (L-V)</div>
+                    <div class="badge"><i class="fas fa-microchip"></i> Machines rentables</div>
+                </div>
+                <div style="margin-top: 2rem;">
+                    <div class="btn-cta" onclick="toggleAuth()"><i class="fas fa-user-plus"></i> Créer un compte</div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <i class="fas fa-microchip" style="font-size: 12rem; color: var(--accent); filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));"></i>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="featuresSection">
+        <div class="container">
+            <h2 class="section-title">Pourquoi choisir nos machines ?</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-microchip" style="font-size: 2rem; color: var(--primary);"></i><h3>Machines performantes</h3><p>Des machines avec des rendements fixes garantis</p></div>
+                <div class="stat-card"><i class="fas fa-chart-line" style="font-size: 2rem; color: var(--primary);"></i><h3>7% par jour</h3><p>Rendement quotidien sur vos investissements</p></div>
+                <div class="stat-card"><i class="fas fa-clock" style="font-size: 2rem; color: var(--primary);"></i><h3>Retraits flexibles</h3><p>Lundi-Vendredi 08h-18h</p></div>
+                <div class="stat-card"><i class="fas fa-shield-alt" style="font-size: 2rem; color: var(--primary);"></i><h3>Sécurisé</h3><p>Validation manuelle des transactions</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="background: white;">
+        <div class="container">
+            <h2 class="section-title">Règles de retrait</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><h3>📅 Horaires</h3><p>Lundi au Vendredi : 08h00 - 18h00</p><p>Samedi & Dimanche : Fermé</p></div>
+                <div class="stat-card"><h3>💰 Montants</h3><p>Minimum : 1000 FCFA</p><p>Multiples de : 50 FCFA</p></div>
+                <div class="stat-card"><h3>📈 Rendement</h3><p>7% par jour ouvrable</p><p>350 FCFA/jour pour 5000 FCFA</p></div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Dashboard Utilisateur -->
+<div id="dashboard" class="dashboard-container">
+    <div class="welcome-card">
+        <h2 id="welcomeUser">Bienvenue</h2>
+        <p>Achetez des machines et générez des revenus passifs !</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><h4>💰 Solde disponible</h4><div class="value" id="balanceDisplay">0 FCFA</div></div>
+        <div class="stat-card"><h4>🖥️ Machines possédées</h4><div class="value" id="machinesCount">0</div></div>
+        <div class="stat-card"><h4>⭐ Gains quotidiens</h4><div class="value" id="dailyEarningsDisplay">0 FCFA/jour</div></div>
+        <div class="stat-card"><h4>🏆 Gains totaux estimés</h4><div class="value" id="earningsDisplay">0 FCFA</div></div>
+    </div>
+
+    <div class="timer-card">
+        <i class="fas fa-clock"></i> Prochain créneau de retrait :
+        <div class="countdown" id="countdownTimer">--:--:--</div>
+    </div>
+
+    <div class="quick-actions">
+        <button class="action-btn" onclick="openDepositModal()"><i class="fas fa-download"></i> Déposer des fonds</button>
+        <button class="action-btn secondary" id="withdrawBtn" onclick="openWithdrawModal()"><i class="fas fa-upload"></i> Retirer</button>
+        <button class="action-btn" onclick="openReferralModal()"><i class="fas fa-link"></i> Parrainage</button>
+    </div>
+
+    <!-- SECTION MACHINES - UNIQUEMENT DANS LE DASHBOARD -->
+    <div class="machines-section">
+        <h3 style="margin-bottom: 1rem;"><i class="fas fa-store"></i> 🏪 Boutique de machines</h3>
+        <p style="color: var(--gray); margin-bottom: 1rem;">Achetez des machines et générez des revenus quotidiens fixes</p>
+        <div class="machines-grid" id="machinesShop"></div>
+    </div>
+
+    <!-- Machines possédées -->
+    <div class="machines-section">
+        <h3 style="margin-bottom: 1rem;"><i class="fas fa-microchip"></i> 📦 Mes machines</h3>
+        <div id="ownedMachinesList" class="owned-machines"></div>
+    </div>
+
+    <div class="transactions-table">
+        <h3>📊 Dernières transactions</h3>
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Type</th><th>Montant</th><th>Statut</th></tr>
+            </thead>
+            <tbody id="transactionsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Panel Admin -->
+<div id="adminPanel" class="admin-container">
+    <div class="welcome-card"><h2>👑 Panel Administrateur</h2><p>Gestion complète des dépôts, retraits et utilisateurs</p></div>
+    <div class="stats-grid">
+        <div class="stat-card"><h4>📥 Dépôts en attente</h4><div class="value" id="pendingDeposits">0</div></div>
+        <div class="stat-card"><h4>📤 Retraits en attente</h4><div class="value" id="pendingWithdrawals">0</div></div>
+        <div class="stat-card"><h4>👥 Total utilisateurs</h4><div class="value" id="totalUsers">0</div></div>
+        <div class="stat-card"><h4>💰 Volume total</h4><div class="value" id="totalVolume">0 FCFA</div></div>
+    </div>
+    <div class="transactions-table"><h3>📥 Dépôts en attente</h3><table><thead><tr><th>Utilisateur</th><th>Montant</th><th>Référence</th><th>Actions</th></tr></thead><tbody id="pendingDepositsList"></tbody></table></div>
+    <div class="transactions-table"><h3>📤 Retraits en attente</h3><table><thead><tr><th>Utilisateur</th><th>Montant</th><th>Téléphone</th><th>Actions</th></tr></thead><tbody id="pendingWithdrawalsList"></tbody></table></div>
+    <div class="transactions-table"><h3>👥 Utilisateurs</h3><table><thead><tr><th>Nom</th><th>Téléphone</th><th>Solde</th><th>Machines</th><th>Actions</th></tr></thead><tbody id="usersList"></tbody></table></div>
+</div>
+
+<!-- Modals -->
+<div id="depositModal" class="modal"><div class="modal-content"><h3>💸 Effectuer un dépôt</h3><div class="info-box">📱 Transfert au : <strong style="font-size:1.5rem;">686 900 731</strong><br>Orange Money / MTN MoMo</div>
+<div class="form-group"><label>Montant (FCFA)</label><input type="number" id="depositAmount" placeholder="Minimum 5000"></div>
+<div class="form-group"><label>Moyen de paiement</label><select id="depositMethod"><option value="orange">Orange Money</option><option value="mtn">MTN MoMo</option></select></div>
+<div class="form-group"><label>Identifiant transaction</label><input type="text" id="transactionId" placeholder="Reçu par SMS"></div>
+<div class="form-group"><label>Votre numéro</label><input type="tel" id="depositPhone" placeholder="6XXXXXXXX"></div>
+<div class="modal-buttons"><button class="btn-submit" onclick="submitDeposit()">Soumettre</button><button class="btn-cancel" onclick="closeModals()">Annuler</button></div></div></div>
+
+<div id="withdrawModal" class="modal"><div class="modal-content"><h3>💸 Demande de retrait</h3><div class="info-box" id="withdrawInfo"></div>
+<div class="form-group"><label>Montant (FCFA)</label><input type="number" id="withdrawAmount" placeholder="Minimum 1000, multiple de 50" step="50"></div>
+<div class="form-group"><label>Moyen de réception</label><select id="withdrawMethod"><option value="orange">Orange Money</option><option value="mtn">MTN MoMo</option></select></div>
+<div class="form-group"><label>Votre numéro</label><input type="tel" id="withdrawPhone" placeholder="6XXXXXXXX"></div>
+<div class="modal-buttons"><button class="btn-submit" onclick="submitWithdraw()">Soumettre</button><button class="btn-cancel" onclick="closeModals()">Annuler</button></div></div></div>
+
+<div id="referralModal" class="modal"><div class="modal-content"><h3>🔗 Mon lien de parrainage</h3><p>Gagnez <strong>5%</strong> sur les dépôts de vos filleuls !</p>
+<input type="text" id="referralLink" readonly style="width:100%; padding:0.8rem; margin:1rem 0; text-align:center;"><button class="btn-submit" onclick="copyReferralLink()">Copier le lien</button><button class="btn-cancel" onclick="closeModals()">Fermer</button></div></div>
+
+<div id="loginModal" class="modal"><div class="modal-content"><h3 id="authTitle">🔐 Connexion</h3>
+<div class="form-group"><label>Nom d'utilisateur</label><input type="text" id="loginUsername"></div>
+<div class="form-group"><label>Téléphone</label><input type="tel" id="loginPhone"></div>
+<div class="form-group"><label>Mot de passe</label><input type="password" id="loginPassword"><i class="fas fa-eye password-toggle" onclick="togglePassword('loginPassword')"></i></div>
+<div id="signupFields" style="display:none;"><div class="form-group"><label>Confirmer mot de passe</label><input type="password" id="confirmPassword"><i class="fas fa-eye password-toggle" onclick="togglePassword('confirmPassword')"></i></div></div>
+<div class="toggle-link" id="toggleAuthMode">Pas encore de compte ? S'inscrire</div>
+<div class="modal-buttons"><button class="btn-submit" id="authButton" onclick="handleAuth()">Se connecter</button><button class="btn-cancel" onclick="closeModals()">Annuler</button></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script.js"></script>
+</body>
+</html>
