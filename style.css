@@ -637,3 +637,60 @@ th {
     .nav-links { display: none; }
     .section-title { font-size: 1.8rem; }
 }
+/* Styles supplémentaires pour le panel admin */
+.admin-container .transactions-table {
+    margin-bottom: 2rem;
+}
+
+.admin-container .transactions-table h3 {
+    margin-bottom: 1rem;
+    color: var(--dark);
+}
+
+.admin-container table {
+    font-size: 0.9rem;
+}
+
+.admin-container table th {
+    background: #f8fafc;
+    font-weight: 600;
+}
+
+.admin-container table td {
+    vertical-align: middle;
+}
+
+.admin-container code {
+    background: #f1f5f9;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.btn-submit {
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
